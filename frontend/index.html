@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,6 +30,31 @@
       --radius-lg:     12px;
     }
 
+    html[data-theme="dark"] .overlay {
+      background: rgba(0,0,0,0.62);
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg-page:       #0f1115;
+      --bg-card:       #171a20;
+      --bg-surface:    #1f232b;
+      --bg-hover:      #262b35;
+      --border:        #343a46;
+      --border-strong: #4a5260;
+      --text-primary:  #e8eaef;
+      --text-muted:    #9ca3b0;
+      --text-hint:     #6b7280;
+      --accent:        #2dd4a3;
+      --accent-dark:   #1D9E75;
+      --danger:        #f87171;
+      --danger-bg:     #2a1515;
+      --danger-border: #7f1d1d;
+      --success-bg:    #14241a;
+      --success-text:  #4ade80;
+      --success-border:#166534;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg-page);
@@ -41,17 +66,42 @@
     .topbar {
       background: var(--bg-card);
       border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      height: 56px;
+      padding: 8px 16px;
+      min-height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
       position: sticky;
       top: 0;
       z-index: 50;
     }
 
     .topbar-left { display: flex; align-items: center; gap: 10px; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pref-select {
+      font-size: 13px;
+      padding: 6px 10px;
+      height: 34px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      min-width: 0;
+    }
+    .pref-select:focus { border-color: var(--accent); }
 
     .logo-mark {
       width: 32px; height: 32px;
@@ -75,7 +125,7 @@
     }
 
     /* ── CONTENT ── */
-    .content { padding: 24px; display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto; }
+    .content { padding: 24px 16px; display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
 
     /* ── METRICS ── */
     .metrics-row {
@@ -192,25 +242,103 @@
     .loading { padding: 32px; text-align: center; color: var(--text-hint); font-size: 14px; }
 
     /* ── MODAL ── */
+    body.modal-open { overflow: hidden; }
+
     .overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.35);
-      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.4);
+      display: none;
       z-index: 200;
       backdrop-filter: blur(2px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: max(12px, env(safe-area-inset-top)) 12px max(24px, env(safe-area-inset-bottom));
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .overlay.open {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .overlay-dialog {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 960px;
+      margin: 24px auto 32px;
     }
 
     .modal {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 24px;
+      padding: 20px 20px 24px;
       width: 420px;
-      max-width: 95vw;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      max-width: 100%;
+      flex: 0 1 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      position: relative;
     }
 
-    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+      line-height: 1.3;
+      padding-right: 4px;
+    }
+
+    .modal-close {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      margin: -6px -8px 0 0;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 26px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .modal-close:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+      color: var(--accent-dark);
+    }
+    .modal-close:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .overlay-categories {
+      flex: 1 1 280px;
+      min-width: 0;
+      max-width: 100%;
+      margin: 0 !important;
+    }
+
+    .overlay-categories .controls input.cat-field-sm { width: min(200px, 100%); }
+    .overlay-categories .controls input.cat-field-md { width: min(220px, 100%); }
 
     .form-group { margin-bottom: 14px; }
     .form-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; display: block; }
@@ -240,10 +368,42 @@
     }
     .btn-secondary:hover { background: var(--bg-surface); }
 
+    .table-scroll-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #table-container .table-scroll-wrap table { min-width: 560px; }
+    #categories-container .table-scroll-wrap table { min-width: 320px; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 700px) {
       .metrics-row { grid-template-columns: 1fr 1fr; }
-      .controls input { width: 140px; }
+      .controls input { width: 140px; max-width: 100%; }
+      .panel-header .controls { width: 100%; }
+      .panel-header .controls input,
+      .panel-header .controls select,
+      .panel-header .controls .btn-primary { flex: 1 1 auto; min-width: 0; }
+    }
+
+    @media (max-width: 520px) {
+      .metrics-row { grid-template-columns: 1fr; }
+      .metric-value { font-size: 22px; }
+      .controls input { width: 100%; }
+      .panel-header { flex-direction: column; align-items: stretch; }
+      .overlay-dialog { margin-top: 8px; flex-direction: column; }
+      .modal { flex-basis: auto; width: 100%; }
+      .form-row { grid-template-columns: 1fr; }
+      .modal-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+      }
+      .modal-actions .btn-secondary,
+      .modal-actions .btn-primary { width: 100%; height: 42px; }
+      .overlay-categories .controls input.cat-field-sm,
+      .overlay-categories .controls input.cat-field-md { width: 100%; }
+      .empty-state { padding: 32px 16px; }
+      thead th, tbody td { padding-left: 14px; padding-right: 14px; font-size: 13px; }
     }
   </style>
 </head>
@@ -259,81 +419,95 @@
           <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.9"/>
         </svg>
       </div>
-      <span class="app-name">Inventory Manager</span>
+      <span class="app-name" data-i18n="appName">Inventory Manager</span>
     </div>
-    <span class="badge-alert" id="alert-badge"></span>
+    <div class="topbar-right">
+      <span class="badge-alert" id="alert-badge"></span>
+      <select id="theme-select" class="pref-select" title="" aria-label="Theme">
+        <option value="light" data-i18n-opt="themeLight">Claro</option>
+        <option value="dark" data-i18n-opt="themeDark">Oscuro</option>
+      </select>
+      <select id="lang-select" class="pref-select" title="" aria-label="Language">
+        <option value="es">Español</option>
+        <option value="en">English</option>
+      </select>
+    </div>
   </div>
 
   <div class="content">
     <div class="metrics-row">
       <div class="metric-card">
-        <div class="metric-label">Total productos</div>
+        <div class="metric-label" data-i18n="metricTotal">Total productos</div>
         <div class="metric-value" id="m-total">—</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">Valor en inventario</div>
+        <div class="metric-label" data-i18n="metricValue">Valor en inventario</div>
         <div class="metric-value success" id="m-value">—</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">Stock bajo</div>
+        <div class="metric-label" data-i18n="metricLow">Stock bajo</div>
         <div class="metric-value danger" id="m-low">—</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">Categorías</div>
+        <div class="metric-label" data-i18n="metricCats">Categorías</div>
         <div class="metric-value" id="m-cats">—</div>
       </div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">Productos</span>
+        <span class="panel-title" data-i18n="panelProducts">Productos</span>
         <div class="controls">
-          <input type="text" id="search-input" placeholder="Buscar producto..." oninput="filterProducts()">
+          <input type="text" id="search-input" data-i18n-placeholder="searchPh" placeholder="Buscar producto..." oninput="filterProducts()">
           <select id="cat-filter" onchange="filterProducts()">
-            <option value="">Todas las categorías</option>
+            <option value="" data-i18n-opt="allCategories">Todas las categorías</option>
           </select>
-          <button class="btn-primary" onclick="openModal()">+ Agregar</button>
+          <button class="btn-primary" onclick="openModal()" data-i18n="addProductBtn">+ Agregar</button>
         </div>
       </div>
       <div id="table-container">
-        <div class="loading">Conectando con la API...</div>
+        <div class="loading" data-i18n="loadingApi">Conectando con la API...</div>
       </div>
     </div>
   </div>
 
   <!-- Modal -->
-  <div class="overlay" id="overlay">
-    <div class="modal">
-      <div class="modal-title" id="modal-title">Agregar producto</div>
+  <div class="overlay" id="overlay" role="presentation">
+    <div class="overlay-dialog" id="overlay-dialog">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title" data-i18n="modalAddTitle">Agregar producto</h2>
+        <button type="button" class="modal-close" id="modal-close-btn" onclick="closeModal()" data-i18n-aria="modalCloseAria" aria-label="Cerrar">×</button>
+      </div>
       <input type="hidden" id="f-id">
 
       <div class="form-group">
-        <label class="form-label">Nombre</label>
-        <input class="form-input" type="text" id="f-name" placeholder="Nombre del producto">
+        <label class="form-label" data-i18n="labelName">Nombre</label>
+        <input class="form-input" type="text" id="f-name" data-i18n-placeholder="phProductName" placeholder="Nombre del producto">
       </div>
       <div class="form-group">
-        <label class="form-label">Descripción</label>
-        <input class="form-input" type="text" id="f-desc" placeholder="Descripción opcional">
+        <label class="form-label" data-i18n="labelDesc">Descripción</label>
+        <input class="form-input" type="text" id="f-desc" data-i18n-placeholder="phDesc" placeholder="Descripción opcional">
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Precio</label>
-          <input class="form-input" type="number" id="f-price" step="0.01" placeholder="0.00">
+          <label class="form-label" data-i18n="labelPrice">Precio</label>
+          <input class="form-input" type="number" id="f-price" step="0.01" data-i18n-placeholder="phPrice" placeholder="0.00">
         </div>
         <div class="form-group">
-          <label class="form-label">Stock actual</label>
-          <input class="form-input" type="number" id="f-stock" placeholder="0">
+          <label class="form-label" data-i18n="labelStock">Stock actual</label>
+          <input class="form-input" type="number" id="f-stock" data-i18n-placeholder="phStock" placeholder="0">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Stock mínimo</label>
+          <label class="form-label" data-i18n="labelMinStock">Stock mínimo</label>
           <input class="form-input" type="number" id="f-minstock" value="5">
         </div>
         <div class="form-group">
-          <label class="form-label">Categoría</label>
+          <label class="form-label" data-i18n="labelCategory">Categoría</label>
           <select class="form-input" id="f-cat">
-            <option value="">Sin categoría</option>
+            <option value="" data-i18n-opt="noCategory">Sin categoría</option>
           </select>
         </div>
       </div>
@@ -341,23 +515,24 @@
       <p id="form-error" style="color:var(--danger);font-size:13px;margin-top:8px;min-height:1.2em"></p>
 
       <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
-        <button class="btn-primary" onclick="saveProduct()">Guardar</button>
+        <button class="btn-secondary" onclick="closeModal()" data-i18n="cancel">Cancelar</button>
+        <button class="btn-primary" onclick="saveProduct()" data-i18n="save">Guardar</button>
       </div>
     </div>
 
-    <div class="panel" style="margin-top:4px">
+    <div class="panel overlay-categories">
       <div class="panel-header">
-        <span class="panel-title">Categorías</span>
+        <span class="panel-title" data-i18n="categoriesTitle">Categorías</span>
         <div class="controls">
-          <input type="text" id="cat-new-name" placeholder="Nombre de categoría" style="width:180px">
-          <input type="text" id="cat-new-desc" placeholder="Descripción (opcional)" style="width:200px">
-          <button type="button" class="btn-primary" onclick="saveCategory()">+ Nueva categoría</button>
+          <input type="text" id="cat-new-name" class="cat-field-sm" data-i18n-placeholder="catNewNamePh" placeholder="Nombre de categoría">
+          <input type="text" id="cat-new-desc" class="cat-field-md" data-i18n-placeholder="catNewDescPh" placeholder="Descripción (opcional)">
+          <button type="button" class="btn-primary" onclick="saveCategory()" data-i18n="addCategoryBtn">+ Agregar categoría</button>
         </div>
       </div>
       <div id="categories-container">
-        <div class="loading">Cargando categorías…</div>
+        <div class="loading" data-i18n="loadingCategories">Cargando categorías…</div>
       </div>
+    </div>
     </div>
   </div>
 
@@ -365,6 +540,224 @@
     const API = 'http://localhost:8080/api';
     let allProducts = [];
     let allCategories = [];
+
+    const STR = {
+      es: {
+        appTitle: 'Inventory Manager',
+        appName: 'Inventory Manager',
+        themeLight: 'Claro',
+        themeDark: 'Oscuro',
+        themeAria: 'Tema',
+        langAria: 'Idioma',
+        metricTotal: 'Total productos',
+        metricValue: 'Valor en inventario',
+        metricLow: 'Stock bajo',
+        metricCats: 'Categorías',
+        panelProducts: 'Productos',
+        searchPh: 'Buscar producto...',
+        allCategories: 'Todas las categorías',
+        addProductBtn: '+ Agregar',
+        loadingApi: 'Conectando con la API...',
+        modalAddTitle: 'Agregar producto',
+        modalEditTitle: 'Editar producto',
+        labelName: 'Nombre',
+        labelDesc: 'Descripción',
+        labelPrice: 'Precio',
+        labelStock: 'Stock actual',
+        labelMinStock: 'Stock mínimo',
+        labelCategory: 'Categoría',
+        phProductName: 'Nombre del producto',
+        phDesc: 'Descripción opcional',
+        phPrice: '0.00',
+        phStock: '0',
+        noCategory: 'Sin categoría',
+        cancel: 'Cancelar',
+        save: 'Guardar',
+        categoriesTitle: 'Categorías',
+        catNewNamePh: 'Nombre de categoría',
+        catNewDescPh: 'Descripción (opcional)',
+        addCategoryBtn: '+ Agregar categoría',
+        loadingCategories: 'Cargando categorías…',
+        errNoApi: 'No se puede conectar con la API.',
+        errNoApiHint: 'Asegúrate de que Spring Boot esté corriendo en <strong>localhost:8080</strong>',
+        errNoConnCat: 'Sin conexión a la API',
+        emptyNoCategories: 'No hay categorías. Crea la primera arriba o usa Postman en <code>POST /api/categories</code>.',
+        tableCatName: 'Nombre',
+        tableCatDesc: 'Descripción',
+        tableActions: 'Acciones',
+        deleteBtn: 'Eliminar',
+        alertCatNameRequired: 'El nombre de la categoría es obligatorio',
+        alertCouldNotCreate: 'No se pudo crear la categoría',
+        couldNotDelete: 'No se pudo eliminar',
+        confirmDeleteCategory: '¿Eliminar esta categoría?',
+        confirmDeleteProduct: '¿Eliminar este producto?',
+        emptyNoProducts: 'No hay productos que mostrar',
+        thName: 'Nombre',
+        thCategory: 'Categoría',
+        thPrice: 'Precio',
+        thStock: 'Stock',
+        thStatus: 'Estado',
+        thActions: 'Acciones',
+        statusLow: '⚠ Stock bajo',
+        statusOk: '✓ OK',
+        editBtn: 'Editar',
+        emDash: '—',
+        badgeLowStock: '{n} con stock bajo',
+        formNameRequired: 'El nombre es obligatorio',
+        formPriceInvalid: 'Indica un precio válido (≥ 0)',
+        formStockInvalid: 'Indica un stock válido (≥ 0)',
+        formMinInvalid: 'Stock mínimo inválido',
+        formSaveError: 'No se pudo guardar el producto',
+        modalCloseAria: 'Cerrar'
+      },
+      en: {
+        appTitle: 'Inventory Manager',
+        appName: 'Inventory Manager',
+        themeLight: 'Light',
+        themeDark: 'Dark',
+        themeAria: 'Theme',
+        langAria: 'Language',
+        metricTotal: 'Total products',
+        metricValue: 'Inventory value',
+        metricLow: 'Low stock',
+        metricCats: 'Categories',
+        panelProducts: 'Products',
+        searchPh: 'Search product...',
+        allCategories: 'All categories',
+        addProductBtn: '+ Add',
+        loadingApi: 'Connecting to API...',
+        modalAddTitle: 'Add product',
+        modalEditTitle: 'Edit product',
+        labelName: 'Name',
+        labelDesc: 'Description',
+        labelPrice: 'Price',
+        labelStock: 'Current stock',
+        labelMinStock: 'Minimum stock',
+        labelCategory: 'Category',
+        phProductName: 'Product name',
+        phDesc: 'Optional description',
+        phPrice: '0.00',
+        phStock: '0',
+        noCategory: 'No category',
+        cancel: 'Cancel',
+        save: 'Save',
+        categoriesTitle: 'Categories',
+        catNewNamePh: 'Category name',
+        catNewDescPh: 'Description (optional)',
+        addCategoryBtn: '+ Add category',
+        loadingCategories: 'Loading categories…',
+        errNoApi: 'Cannot connect to the API.',
+        errNoApiHint: 'Make sure Spring Boot is running on <strong>localhost:8080</strong>',
+        errNoConnCat: 'No API connection',
+        emptyNoCategories: 'No categories yet. Create one above or use Postman at <code>POST /api/categories</code>.',
+        tableCatName: 'Name',
+        tableCatDesc: 'Description',
+        tableActions: 'Actions',
+        deleteBtn: 'Delete',
+        alertCatNameRequired: 'Category name is required',
+        alertCouldNotCreate: 'Could not create category',
+        couldNotDelete: 'Could not delete',
+        confirmDeleteCategory: 'Delete this category?',
+        confirmDeleteProduct: 'Delete this product?',
+        emptyNoProducts: 'No products to show',
+        thName: 'Name',
+        thCategory: 'Category',
+        thPrice: 'Price',
+        thStock: 'Stock',
+        thStatus: 'Status',
+        thActions: 'Actions',
+        statusLow: '⚠ Low stock',
+        statusOk: '✓ OK',
+        editBtn: 'Edit',
+        emDash: '—',
+        badgeLowStock: '{n} with low stock',
+        formNameRequired: 'Name is required',
+        formPriceInvalid: 'Enter a valid price (≥ 0)',
+        formStockInvalid: 'Enter valid stock (≥ 0)',
+        formMinInvalid: 'Invalid minimum stock',
+        formSaveError: 'Could not save product',
+        modalCloseAria: 'Close'
+      }
+    };
+
+    let lang = 'es';
+
+    function t(key) {
+      const pack = STR[lang] || STR.es;
+      return pack[key] ?? STR.es[key] ?? key;
+    }
+
+    function localeTag() {
+      return lang === 'en' ? 'en-US' : 'es-CO';
+    }
+
+    function applyStaticI18n() {
+      document.documentElement.lang = lang === 'en' ? 'en' : 'es';
+      document.title = t('appTitle');
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.getAttribute('data-i18n');
+        if (k) el.textContent = t(k);
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const k = el.getAttribute('data-i18n-placeholder');
+        if (k) el.setAttribute('placeholder', t(k));
+      });
+      document.querySelectorAll('[data-i18n-opt]').forEach(el => {
+        const k = el.getAttribute('data-i18n-opt');
+        if (k) el.textContent = t(k);
+      });
+      const ts = document.getElementById('theme-select');
+      const ls = document.getElementById('lang-select');
+      if (ts) {
+        ts.setAttribute('aria-label', t('themeAria'));
+        ts.setAttribute('title', t('themeAria'));
+      }
+      if (ls) {
+        ls.setAttribute('aria-label', t('langAria'));
+        ls.setAttribute('title', t('langAria'));
+      }
+      document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+        const k = el.getAttribute('data-i18n-aria');
+        if (k) el.setAttribute('aria-label', t(k));
+      });
+    }
+
+    function initPrefs() {
+      const theme = localStorage.getItem('ui-theme') || 'light';
+      const langStored = localStorage.getItem('ui-lang') || 'es';
+      document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+      const ts = document.getElementById('theme-select');
+      if (ts) ts.value = theme === 'dark' ? 'dark' : 'light';
+      lang = langStored === 'en' ? 'en' : 'es';
+      const ls = document.getElementById('lang-select');
+      if (ls) ls.value = lang;
+      applyStaticI18n();
+    }
+
+    document.getElementById('theme-select').addEventListener('change', function () {
+      const v = this.value === 'dark' ? 'dark' : 'light';
+      localStorage.setItem('ui-theme', v);
+      document.documentElement.setAttribute('data-theme', v);
+    });
+
+    document.getElementById('lang-select').addEventListener('change', function () {
+      lang = this.value === 'en' ? 'en' : 'es';
+      localStorage.setItem('ui-lang', lang);
+      applyStaticI18n();
+      loadAll();
+    });
+
+    (function setupModalChrome() {
+      const overlay = document.getElementById('overlay');
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (!overlay.classList.contains('open')) return;
+        closeModal();
+      });
+    })();
 
     async function loadAll() {
       let productsOk = false;
@@ -385,10 +778,11 @@
 
       if (!productsOk) {
         document.getElementById('table-container').innerHTML =
-          `<div class="empty-state">No se puede conectar con la API.<br>Asegúrate de que Spring Boot esté corriendo en <strong>localhost:8080</strong></div>`;
+          `<div class="empty-state">${t('errNoApi')}<br>${t('errNoApiHint')}</div>`;
         document.getElementById('categories-container').innerHTML =
-          `<div class="empty-state">Sin conexión a la API</div>`;
-        ['m-total','m-value','m-low','m-cats'].forEach(id => document.getElementById(id).textContent = '—');
+          `<div class="empty-state">${t('errNoConnCat')}</div>`;
+        const dash = t('emDash');
+        ['m-total','m-value','m-low','m-cats'].forEach(id => document.getElementById(id).textContent = dash);
         return;
       }
 
@@ -402,12 +796,13 @@
     function renderMetrics(products) {
       document.getElementById('m-total').textContent = products.length;
       const value = products.reduce((s, p) => s + parseFloat(p.price) * p.stock, 0);
-      document.getElementById('m-value').textContent = '$' + value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      const loc = localeTag();
+      document.getElementById('m-value').textContent = '$' + value.toLocaleString(loc, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
       const low = products.filter(p => p.stock <= p.minStock).length;
       document.getElementById('m-low').textContent = low;
       document.getElementById('m-cats').textContent = allCategories.length;
       const badge = document.getElementById('alert-badge');
-      if (low > 0) { badge.textContent = low + ' con stock bajo'; badge.style.display = 'inline-flex'; }
+      if (low > 0) { badge.textContent = t('badgeLowStock').replace(/\{n\}/g, String(low)); badge.style.display = 'inline-flex'; }
       else { badge.style.display = 'none'; }
     }
 
@@ -422,6 +817,7 @@
         sel.appendChild(opt);
       });
       if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+      if (sel.options[0]) sel.options[0].textContent = t('allCategories');
     }
 
     function populateProductCategorySelect() {
@@ -435,30 +831,34 @@
         sel.appendChild(opt);
       });
       if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+      if (sel.options[0]) sel.options[0].textContent = t('noCategory');
     }
 
     function renderCategoriesTable() {
       const box = document.getElementById('categories-container');
       if (!allCategories.length) {
-        box.innerHTML = '<div class="empty-state">No hay categorías. Crea la primera arriba o usa Postman en <code>POST /api/categories</code>.</div>';
+        box.innerHTML = `<div class="empty-state">${t('emptyNoCategories')}</div>`;
         return;
       }
+      const ed = t('emDash');
       box.innerHTML = `
+        <div class="table-scroll-wrap">
         <table>
           <thead>
-            <tr><th>Nombre</th><th>Descripción</th><th style="width:100px">Acciones</th></tr>
+            <tr><th>${t('tableCatName')}</th><th>${t('tableCatDesc')}</th><th style="width:100px">${t('tableActions')}</th></tr>
           </thead>
           <tbody>
             ${allCategories.map(c => `
               <tr>
                 <td style="font-weight:600">${escapeHtml(c.name)}</td>
-                <td style="color:var(--text-muted)">${escapeHtml(c.description || '—')}</td>
+                <td style="color:var(--text-muted)">${escapeHtml(c.description || ed)}</td>
                 <td>
-                  <button type="button" class="action-btn del" onclick="deleteCategory(${c.id})">Eliminar</button>
+                  <button type="button" class="action-btn del" onclick="deleteCategory(${c.id})">${t('deleteBtn')}</button>
                 </td>
               </tr>`).join('')}
           </tbody>
-        </table>`;
+        </table>
+        </div>`;
     }
 
     function escapeHtml(s) {
@@ -470,14 +870,14 @@
     async function saveCategory() {
       const name = document.getElementById('cat-new-name').value.trim();
       const description = document.getElementById('cat-new-desc').value.trim();
-      if (!name) { alert('El nombre de la categoría es obligatorio'); return; }
+      if (!name) { alert(t('alertCatNameRequired')); return; }
       const res = await fetch(`${API}/categories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, description: description || null })
       });
       if (!res.ok) {
-        let msg = 'No se pudo crear la categoría';
+        let msg = t('alertCouldNotCreate');
         try {
           const j = await res.json();
           msg = j.error || Object.values(j).join(' ') || msg;
@@ -491,14 +891,14 @@
     }
 
     async function deleteCategory(id) {
-      if (!confirm('¿Eliminar esta categoría?')) return;
+      if (!confirm(t('confirmDeleteCategory'))) return;
       const res = await fetch(`${API}/categories/${id}`, { method: 'DELETE' });
       if (!res.ok) {
-        let msg = 'No se pudo eliminar';
+        let msg = t('couldNotDelete');
         try {
-          const t = await res.text();
-          if (t) {
-            try { msg = JSON.parse(t).error || msg; } catch (_) { msg = t || msg; }
+          const txt = await res.text();
+          if (txt) {
+            try { msg = JSON.parse(txt).error || msg; } catch (_) { msg = txt || msg; }
           }
         } catch (_) {}
         alert(msg);
@@ -517,32 +917,36 @@
 
     function renderTable(products) {
       if (!products.length) {
-        document.getElementById('table-container').innerHTML = '<div class="empty-state">No hay productos que mostrar</div>';
+        document.getElementById('table-container').innerHTML = `<div class="empty-state">${t('emptyNoProducts')}</div>`;
         return;
       }
+      const loc = localeTag();
+      const ed = t('emDash');
       document.getElementById('table-container').innerHTML = `
+        <div class="table-scroll-wrap">
         <table>
           <thead>
             <tr>
-              <th>Nombre</th><th>Categoría</th><th>Precio</th>
-              <th>Stock</th><th>Estado</th><th>Acciones</th>
+              <th>${t('thName')}</th><th>${t('thCategory')}</th><th>${t('thPrice')}</th>
+              <th>${t('thStock')}</th><th>${t('thStatus')}</th><th>${t('thActions')}</th>
             </tr>
           </thead>
           <tbody>
             ${products.map(p => `
               <tr>
                 <td style="font-weight:600">${p.name}</td>
-                <td><span class="pill pill-cat">${p.category?.name || '—'}</span></td>
-                <td>$${parseFloat(p.price).toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                <td><span class="pill pill-cat">${p.category?.name || ed}</span></td>
+                <td>$${parseFloat(p.price).toLocaleString(loc, {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
                 <td>${p.stock}</td>
-                <td><span class="pill ${p.stock <= p.minStock ? 'pill-low' : 'pill-ok'}">${p.stock <= p.minStock ? '⚠ Stock bajo' : '✓ OK'}</span></td>
+                <td><span class="pill ${p.stock <= p.minStock ? 'pill-low' : 'pill-ok'}">${p.stock <= p.minStock ? t('statusLow') : t('statusOk')}</span></td>
                 <td>
-                  <button class="action-btn" onclick="editProduct(${p.id})">Editar</button>
-                  <button class="action-btn del" onclick="deleteProduct(${p.id})">Eliminar</button>
+                  <button class="action-btn" onclick="editProduct(${p.id})">${t('editBtn')}</button>
+                  <button class="action-btn del" onclick="deleteProduct(${p.id})">${t('deleteBtn')}</button>
                 </td>
               </tr>`).join('')}
           </tbody>
-        </table>`;
+        </table>
+        </div>`;
     }
 
     async function editProduct(id) {
@@ -555,7 +959,7 @@
       document.getElementById('f-stock').value = p.stock;
       document.getElementById('f-minstock').value = p.minStock;
       document.getElementById('f-cat').value = p.category?.id != null ? String(p.category.id) : '';
-      document.getElementById('modal-title').textContent = 'Editar producto';
+      document.getElementById('modal-title').textContent = t('modalEditTitle');
       document.getElementById('form-error').textContent = '';
       openModal();
     }
@@ -571,10 +975,10 @@
       const minStock = minRaw === '' ? 5 : parseInt(minRaw, 10);
       const catVal = document.getElementById('f-cat').value;
 
-      if (!name) { errEl.textContent = 'El nombre es obligatorio'; return; }
-      if (Number.isNaN(price) || price < 0) { errEl.textContent = 'Indica un precio válido (≥ 0)'; return; }
-      if (Number.isNaN(stock) || stock < 0) { errEl.textContent = 'Indica un stock válido (≥ 0)'; return; }
-      if (Number.isNaN(minStock) || minStock < 0) { errEl.textContent = 'Stock mínimo inválido'; return; }
+      if (!name) { errEl.textContent = t('formNameRequired'); return; }
+      if (Number.isNaN(price) || price < 0) { errEl.textContent = t('formPriceInvalid'); return; }
+      if (Number.isNaN(stock) || stock < 0) { errEl.textContent = t('formStockInvalid'); return; }
+      if (Number.isNaN(minStock) || minStock < 0) { errEl.textContent = t('formMinInvalid'); return; }
 
       const body = {
         name,
@@ -591,7 +995,7 @@
         body: JSON.stringify(body)
       });
       if (!res.ok) {
-        let msg = 'No se pudo guardar el producto';
+        let msg = t('formSaveError');
         try {
           const j = await res.json();
           msg = j.error || Object.values(j).join(' ') || msg;
@@ -606,23 +1010,34 @@
     function openModal() {
       populateProductCategorySelect();
       document.getElementById('form-error').textContent = '';
-      document.getElementById('overlay').style.display = 'flex';
+      if (!document.getElementById('f-id').value)
+        document.getElementById('modal-title').textContent = t('modalAddTitle');
+      const overlay = document.getElementById('overlay');
+      overlay.classList.add('open');
+      document.body.classList.add('modal-open');
+      queueMicrotask(() => {
+        const nameEl = document.getElementById('f-name');
+        if (nameEl) nameEl.focus();
+      });
     }
     function closeModal() {
-      document.getElementById('overlay').style.display = 'none';
+      const overlay = document.getElementById('overlay');
+      overlay.classList.remove('open');
+      document.body.classList.remove('modal-open');
       document.getElementById('f-id').value = '';
       document.getElementById('f-cat').value = '';
-      document.getElementById('modal-title').textContent = 'Agregar producto';
+      document.getElementById('modal-title').textContent = t('modalAddTitle');
       document.getElementById('form-error').textContent = '';
     }
 
     async function deleteProduct(id) {
-      if (confirm('¿Eliminar este producto?')) {
+      if (confirm(t('confirmDeleteProduct'))) {
         await fetch(`${API}/products/${id}`, { method: 'DELETE' });
         loadAll();
       }
     }
 
+    initPrefs();
     loadAll();
   </script>
 </body>
