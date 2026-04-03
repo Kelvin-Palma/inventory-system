@@ -1,6 +1,8 @@
 package com.kelvin.inventory.services;
 
+import com.kelvin.inventory.models.Category;
 import com.kelvin.inventory.models.Product;
+import com.kelvin.inventory.repositories.CategoryRepository;
 import com.kelvin.inventory.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import java.util.Map;
 public class ProductService {
 
     private final ProductRepository productRepo;
+    private final CategoryRepository categoryRepo;
 
     public List<Product> getAll() {
         return productRepo.findAll();
@@ -24,6 +27,7 @@ public class ProductService {
     }
 
     public Product create(Product product) {
+        attachCategory(product);
         return productRepo.save(product);
     }
 
@@ -34,8 +38,20 @@ public class ProductService {
         existing.setPrice(data.getPrice());
         existing.setStock(data.getStock());
         existing.setMinStock(data.getMinStock());
+        attachCategory(data);
         existing.setCategory(data.getCategory());
         return productRepo.save(existing);
+    }
+
+    private void attachCategory(Product product) {
+        if (product.getCategory() == null || product.getCategory().getId() == null) {
+            product.setCategory(null);
+            return;
+        }
+        Long catId = product.getCategory().getId();
+        Category category = categoryRepo.findById(catId)
+            .orElseThrow(() -> new RuntimeException("Category not found: " + catId));
+        product.setCategory(category);
     }
 
     public void delete(Long id) {

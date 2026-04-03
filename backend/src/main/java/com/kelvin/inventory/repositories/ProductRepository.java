@@ -10,6 +10,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Search by category
     List<Product> findByCategoryId(Long categoryId);
 
+    long countByCategoryId(Long categoryId);
+
     // Products with low stock
     @Query("SELECT p FROM Product p WHERE p.stock <= p.minStock")
     List<Product> findLowStockProducts();

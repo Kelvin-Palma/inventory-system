@@ -331,14 +331,32 @@
           <input class="form-input" type="number" id="f-minstock" value="5">
         </div>
         <div class="form-group">
-          <label class="form-label">ID Categoría</label>
-          <input class="form-input" type="number" id="f-catid" placeholder="1">
+          <label class="form-label">Categoría</label>
+          <select class="form-input" id="f-cat">
+            <option value="">Sin categoría</option>
+          </select>
         </div>
       </div>
+
+      <p id="form-error" style="color:var(--danger);font-size:13px;margin-top:8px;min-height:1.2em"></p>
 
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
         <button class="btn-primary" onclick="saveProduct()">Guardar</button>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:4px">
+      <div class="panel-header">
+        <span class="panel-title">Categorías</span>
+        <div class="controls">
+          <input type="text" id="cat-new-name" placeholder="Nombre de categoría" style="width:180px">
+          <input type="text" id="cat-new-desc" placeholder="Descripción (opcional)" style="width:200px">
+          <button type="button" class="btn-primary" onclick="saveCategory()">+ Nueva categoría</button>
+        </div>
+      </div>
+      <div id="categories-container">
+        <div class="loading">Cargando categorías…</div>
       </div>
     </div>
   </div>
@@ -346,19 +364,39 @@
   <script>
     const API = 'http://localhost:8080/api';
     let allProducts = [];
+    let allCategories = [];
 
-    async function loadProducts() {
+    async function loadAll() {
+      let productsOk = false;
       try {
         const res = await fetch(`${API}/products`);
         allProducts = await res.json();
-        renderMetrics(allProducts);
-        renderTable(allProducts);
-        populateCategoryFilter(allProducts);
-      } catch(e) {
+        productsOk = true;
+      } catch (e) {
+        allProducts = [];
+      }
+
+      try {
+        const res = await fetch(`${API}/categories`);
+        allCategories = await res.json();
+      } catch (e) {
+        allCategories = [];
+      }
+
+      if (!productsOk) {
         document.getElementById('table-container').innerHTML =
           `<div class="empty-state">No se puede conectar con la API.<br>Asegúrate de que Spring Boot esté corriendo en <strong>localhost:8080</strong></div>`;
+        document.getElementById('categories-container').innerHTML =
+          `<div class="empty-state">Sin conexión a la API</div>`;
         ['m-total','m-value','m-low','m-cats'].forEach(id => document.getElementById(id).textContent = '—');
+        return;
       }
+
+      renderMetrics(allProducts);
+      renderTable(allProducts);
+      populateCategoryFilter();
+      populateProductCategorySelect();
+      renderCategoriesTable();
     }
 
     function renderMetrics(products) {
@@ -367,22 +405,106 @@
       document.getElementById('m-value').textContent = '$' + value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
       const low = products.filter(p => p.stock <= p.minStock).length;
       document.getElementById('m-low').textContent = low;
-      const cats = new Set(products.map(p => p.category?.id).filter(Boolean)).size;
-      document.getElementById('m-cats').textContent = cats;
+      document.getElementById('m-cats').textContent = allCategories.length;
       const badge = document.getElementById('alert-badge');
       if (low > 0) { badge.textContent = low + ' con stock bajo'; badge.style.display = 'inline-flex'; }
+      else { badge.style.display = 'none'; }
     }
 
-    function populateCategoryFilter(products) {
+    function populateCategoryFilter() {
       const sel = document.getElementById('cat-filter');
+      const prev = sel.value;
       sel.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
-      const cats = {};
-      products.forEach(p => { if (p.category) cats[p.category.id] = p.category.name; });
-      Object.entries(cats).forEach(([id, name]) => {
+      allCategories.forEach(c => {
         const opt = document.createElement('option');
-        opt.value = id; opt.textContent = name;
+        opt.value = c.id;
+        opt.textContent = c.name;
         sel.appendChild(opt);
       });
+      if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
+
+    function populateProductCategorySelect() {
+      const sel = document.getElementById('f-cat');
+      const prev = sel.value;
+      sel.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
+      allCategories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        sel.appendChild(opt);
+      });
+      if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
+
+    function renderCategoriesTable() {
+      const box = document.getElementById('categories-container');
+      if (!allCategories.length) {
+        box.innerHTML = '<div class="empty-state">No hay categorías. Crea la primera arriba o usa Postman en <code>POST /api/categories</code>.</div>';
+        return;
+      }
+      box.innerHTML = `
+        <table>
+          <thead>
+            <tr><th>Nombre</th><th>Descripción</th><th style="width:100px">Acciones</th></tr>
+          </thead>
+          <tbody>
+            ${allCategories.map(c => `
+              <tr>
+                <td style="font-weight:600">${escapeHtml(c.name)}</td>
+                <td style="color:var(--text-muted)">${escapeHtml(c.description || '—')}</td>
+                <td>
+                  <button type="button" class="action-btn del" onclick="deleteCategory(${c.id})">Eliminar</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    async function saveCategory() {
+      const name = document.getElementById('cat-new-name').value.trim();
+      const description = document.getElementById('cat-new-desc').value.trim();
+      if (!name) { alert('El nombre de la categoría es obligatorio'); return; }
+      const res = await fetch(`${API}/categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description: description || null })
+      });
+      if (!res.ok) {
+        let msg = 'No se pudo crear la categoría';
+        try {
+          const j = await res.json();
+          msg = j.error || Object.values(j).join(' ') || msg;
+        } catch (_) {}
+        alert(msg);
+        return;
+      }
+      document.getElementById('cat-new-name').value = '';
+      document.getElementById('cat-new-desc').value = '';
+      await loadAll();
+    }
+
+    async function deleteCategory(id) {
+      if (!confirm('¿Eliminar esta categoría?')) return;
+      const res = await fetch(`${API}/categories/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        let msg = 'No se pudo eliminar';
+        try {
+          const t = await res.text();
+          if (t) {
+            try { msg = JSON.parse(t).error || msg; } catch (_) { msg = t || msg; }
+          }
+        } catch (_) {}
+        alert(msg);
+        return;
+      }
+      await loadAll();
     }
 
     function filterProducts() {
@@ -425,51 +547,83 @@
 
     async function editProduct(id) {
       const p = await fetch(`${API}/products/${id}`).then(r => r.json());
+      populateProductCategorySelect();
       document.getElementById('f-id').value = p.id;
       document.getElementById('f-name').value = p.name;
       document.getElementById('f-desc').value = p.description || '';
       document.getElementById('f-price').value = p.price;
       document.getElementById('f-stock').value = p.stock;
       document.getElementById('f-minstock').value = p.minStock;
-      document.getElementById('f-catid').value = p.category?.id || '';
+      document.getElementById('f-cat').value = p.category?.id != null ? String(p.category.id) : '';
       document.getElementById('modal-title').textContent = 'Editar producto';
+      document.getElementById('form-error').textContent = '';
       openModal();
     }
 
     async function saveProduct() {
+      const errEl = document.getElementById('form-error');
+      errEl.textContent = '';
       const id = document.getElementById('f-id').value;
+      const name = document.getElementById('f-name').value.trim();
+      const price = parseFloat(document.getElementById('f-price').value);
+      const stock = parseInt(document.getElementById('f-stock').value, 10);
+      const minRaw = document.getElementById('f-minstock').value;
+      const minStock = minRaw === '' ? 5 : parseInt(minRaw, 10);
+      const catVal = document.getElementById('f-cat').value;
+
+      if (!name) { errEl.textContent = 'El nombre es obligatorio'; return; }
+      if (Number.isNaN(price) || price < 0) { errEl.textContent = 'Indica un precio válido (≥ 0)'; return; }
+      if (Number.isNaN(stock) || stock < 0) { errEl.textContent = 'Indica un stock válido (≥ 0)'; return; }
+      if (Number.isNaN(minStock) || minStock < 0) { errEl.textContent = 'Stock mínimo inválido'; return; }
+
       const body = {
-        name: document.getElementById('f-name').value,
-        description: document.getElementById('f-desc').value,
-        price: parseFloat(document.getElementById('f-price').value),
-        stock: parseInt(document.getElementById('f-stock').value),
-        minStock: parseInt(document.getElementById('f-minstock').value),
-        category: { id: parseInt(document.getElementById('f-catid').value) }
+        name,
+        description: document.getElementById('f-desc').value.trim(),
+        price,
+        stock,
+        minStock
       };
-      await fetch(id ? `${API}/products/${id}` : `${API}/products`, {
+      if (catVal) body.category = { id: parseInt(catVal, 10) };
+
+      const res = await fetch(id ? `${API}/products/${id}` : `${API}/products`, {
         method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
+      if (!res.ok) {
+        let msg = 'No se pudo guardar el producto';
+        try {
+          const j = await res.json();
+          msg = j.error || Object.values(j).join(' ') || msg;
+        } catch (_) {}
+        errEl.textContent = msg;
+        return;
+      }
       closeModal();
-      loadProducts();
+      loadAll();
+    }
+
+    function openModal() {
+      populateProductCategorySelect();
+      document.getElementById('form-error').textContent = '';
+      document.getElementById('overlay').style.display = 'flex';
+    }
+    function closeModal() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('f-id').value = '';
+      document.getElementById('f-cat').value = '';
+      document.getElementById('modal-title').textContent = 'Agregar producto';
+      document.getElementById('form-error').textContent = '';
     }
 
     async function deleteProduct(id) {
       if (confirm('¿Eliminar este producto?')) {
         await fetch(`${API}/products/${id}`, { method: 'DELETE' });
-        loadProducts();
+        loadAll();
       }
     }
 
-    function openModal() { document.getElementById('overlay').style.display = 'flex'; }
-    function closeModal() {
-      document.getElementById('overlay').style.display = 'none';
-      document.getElementById('f-id').value = '';
-      document.getElementById('modal-title').textContent = 'Agregar producto';
-    }
-
-    loadProducts();
+    loadAll();
   </script>
 </body>
 </html>
