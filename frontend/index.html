@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Manager</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-page:       #f4f5f7;
+      --bg-card:       #ffffff;
+      --bg-surface:    #f0f2f5;
+      --bg-hover:      #f7f8fa;
+      --border:        #e2e5ea;
+      --border-strong: #c8cdd6;
+      --text-primary:  #111827;
+      --text-muted:    #6b7280;
+      --text-hint:     #9ca3af;
+      --accent:        #1D9E75;
+      --accent-dark:   #0F6E56;
+      --danger:        #dc2626;
+      --danger-bg:     #fef2f2;
+      --danger-border: #fca5a5;
+      --success-bg:    #f0fdf4;
+      --success-text:  #15803d;
+      --success-border:#86efac;
+      --radius-sm:     6px;
+      --radius-md:     8px;
+      --radius-lg:     12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+
+    .logo-mark {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .logo-mark svg { width: 18px; height: 18px; }
+    .app-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+
+    .badge-alert {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      display: none;
+    }
+
+    /* ── CONTENT ── */
+    .content { padding: 24px; display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto; }
+
+    /* ── METRICS ── */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .metric-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+    .metric-value { font-size: 26px; font-weight: 600; color: var(--text-primary); }
+    .metric-value.danger { color: var(--danger); }
+    .metric-value.success { color: var(--accent); }
+
+    /* ── PANEL ── */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title { font-size: 14px; font-weight: 600; }
+
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .controls input, .controls select {
+      font-size: 13px;
+      padding: 6px 10px;
+      height: 34px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .controls input:focus, .controls select:focus { border-color: var(--accent); }
+    .controls input { width: 200px; }
+
+    .btn-primary {
+      height: 34px; padding: 0 14px;
+      font-size: 13px; font-family: inherit;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      cursor: pointer; font-weight: 600;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: var(--accent-dark); }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      padding: 10px 20px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--bg-page);
+    }
+
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-hover); }
+    tbody td { padding: 12px 20px; font-size: 14px; }
+
+    /* ── PILLS ── */
+    .pill {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 12px; font-weight: 500;
+    }
+    .pill-ok     { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+    .pill-low    { background: var(--danger-bg);  color: var(--danger);       border: 1px solid var(--danger-border); }
+    .pill-cat    { background: var(--bg-surface); color: var(--text-muted);   border: 1px solid var(--border); }
+
+    /* ── ACTION BUTTONS ── */
+    .action-btn {
+      background: none;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer; font-family: inherit;
+      color: var(--text-muted);
+      transition: all 0.1s;
+      margin-right: 4px;
+    }
+    .action-btn:hover { background: var(--bg-surface); color: var(--text-primary); }
+    .action-btn.del:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); }
+
+    .empty-state { padding: 48px; text-align: center; color: var(--text-muted); font-size: 14px; }
+    .loading { padding: 32px; text-align: center; color: var(--text-hint); font-size: 14px; }
+
+    /* ── MODAL ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none; align-items: center; justify-content: center;
+      z-index: 200;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      width: 420px;
+      max-width: 95vw;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+
+    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; display: block; }
+
+    .form-input {
+      width: 100%; padding: 8px 10px;
+      font-size: 14px; font-family: inherit;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--accent); }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+    .btn-secondary {
+      height: 36px; padding: 0 14px; font-size: 13px; font-weight: 500;
+      background: none; border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md); cursor: pointer;
+      font-family: inherit; color: var(--text-primary);
+      transition: background 0.1s;
+    }
+    .btn-secondary:hover { background: var(--bg-surface); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      .metrics-row { grid-template-columns: 1fr 1fr; }
+      .controls input { width: 140px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-mark">
+        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9"/>
+          <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+          <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+          <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.9"/>
+        </svg>
+      </div>
+      <span class="app-name">Inventory Manager</span>
+    </div>
+    <span class="badge-alert" id="alert-badge"></span>
+  </div>
+
+  <div class="content">
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-label">Total productos</div>
+        <div class="metric-value" id="m-total">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Valor en inventario</div>
+        <div class="metric-value success" id="m-value">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Stock bajo</div>
+        <div class="metric-value danger" id="m-low">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Categorías</div>
+        <div class="metric-value" id="m-cats">—</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Productos</span>
+        <div class="controls">
+          <input type="text" id="search-input" placeholder="Buscar producto..." oninput="filterProducts()">
+          <select id="cat-filter" onchange="filterProducts()">
+            <option value="">Todas las categorías</option>
+          </select>
+          <button class="btn-primary" onclick="openModal()">+ Agregar</button>
+        </div>
+      </div>
+      <div id="table-container">
+        <div class="loading">Conectando con la API...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">Agregar producto</div>
+      <input type="hidden" id="f-id">
+
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input class="form-input" type="text" id="f-name" placeholder="Nombre del producto">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <input class="form-input" type="text" id="f-desc" placeholder="Descripción opcional">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Precio</label>
+          <input class="form-input" type="number" id="f-price" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock actual</label>
+          <input class="form-input" type="number" id="f-stock" placeholder="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Stock mínimo</label>
+          <input class="form-input" type="number" id="f-minstock" value="5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ID Categoría</label>
+          <input class="form-input" type="number" id="f-catid" placeholder="1">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn-primary" onclick="saveProduct()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:8080/api';
+    let allProducts = [];
+
+    async function loadProducts() {
+      try {
+        const res = await fetch(`${API}/products`);
+        allProducts = await res.json();
+        renderMetrics(allProducts);
+        renderTable(allProducts);
+        populateCategoryFilter(allProducts);
+      } catch(e) {
+        document.getElementById('table-container').innerHTML =
+          `<div class="empty-state">No se puede conectar con la API.<br>Asegúrate de que Spring Boot esté corriendo en <strong>localhost:8080</strong></div>`;
+        ['m-total','m-value','m-low','m-cats'].forEach(id => document.getElementById(id).textContent = '—');
+      }
+    }
+
+    function renderMetrics(products) {
+      document.getElementById('m-total').textContent = products.length;
+      const value = products.reduce((s, p) => s + parseFloat(p.price) * p.stock, 0);
+      document.getElementById('m-value').textContent = '$' + value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      const low = products.filter(p => p.stock <= p.minStock).length;
+      document.getElementById('m-low').textContent = low;
+      const cats = new Set(products.map(p => p.category?.id).filter(Boolean)).size;
+      document.getElementById('m-cats').textContent = cats;
+      const badge = document.getElementById('alert-badge');
+      if (low > 0) { badge.textContent = low + ' con stock bajo'; badge.style.display = 'inline-flex'; }
+    }
+
+    function populateCategoryFilter(products) {
+      const sel = document.getElementById('cat-filter');
+      sel.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
+      const cats = {};
+      products.forEach(p => { if (p.category) cats[p.category.id] = p.category.name; });
+      Object.entries(cats).forEach(([id, name]) => {
+        const opt = document.createElement('option');
+        opt.value = id; opt.textContent = name;
+        sel.appendChild(opt);
+      });
+    }
+
+    function filterProducts() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const cat = document.getElementById('cat-filter').value;
+      renderTable(allProducts.filter(p =>
+        p.name.toLowerCase().includes(q) && (!cat || String(p.category?.id) === cat)
+      ));
+    }
+
+    function renderTable(products) {
+      if (!products.length) {
+        document.getElementById('table-container').innerHTML = '<div class="empty-state">No hay productos que mostrar</div>';
+        return;
+      }
+      document.getElementById('table-container').innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th><th>Categoría</th><th>Precio</th>
+              <th>Stock</th><th>Estado</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${products.map(p => `
+              <tr>
+                <td style="font-weight:600">${p.name}</td>
+                <td><span class="pill pill-cat">${p.category?.name || '—'}</span></td>
+                <td>$${parseFloat(p.price).toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                <td>${p.stock}</td>
+                <td><span class="pill ${p.stock <= p.minStock ? 'pill-low' : 'pill-ok'}">${p.stock <= p.minStock ? '⚠ Stock bajo' : '✓ OK'}</span></td>
+                <td>
+                  <button class="action-btn" onclick="editProduct(${p.id})">Editar</button>
+                  <button class="action-btn del" onclick="deleteProduct(${p.id})">Eliminar</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    async function editProduct(id) {
+      const p = await fetch(`${API}/products/${id}`).then(r => r.json());
+      document.getElementById('f-id').value = p.id;
+      document.getElementById('f-name').value = p.name;
+      document.getElementById('f-desc').value = p.description || '';
+      document.getElementById('f-price').value = p.price;
+      document.getElementById('f-stock').value = p.stock;
+      document.getElementById('f-minstock').value = p.minStock;
+      document.getElementById('f-catid').value = p.category?.id || '';
+      document.getElementById('modal-title').textContent = 'Editar producto';
+      openModal();
+    }
+
+    async function saveProduct() {
+      const id = document.getElementById('f-id').value;
+      const body = {
+        name: document.getElementById('f-name').value,
+        description: document.getElementById('f-desc').value,
+        price: parseFloat(document.getElementById('f-price').value),
+        stock: parseInt(document.getElementById('f-stock').value),
+        minStock: parseInt(document.getElementById('f-minstock').value),
+        category: { id: parseInt(document.getElementById('f-catid').value) }
+      };
+      await fetch(id ? `${API}/products/${id}` : `${API}/products`, {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      closeModal();
+      loadProducts();
+    }
+
+    async function deleteProduct(id) {
+      if (confirm('¿Eliminar este producto?')) {
+        await fetch(`${API}/products/${id}`, { method: 'DELETE' });
+        loadProducts();
+      }
+    }
+
+    function openModal() { document.getElementById('overlay').style.display = 'flex'; }
+    function closeModal() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('f-id').value = '';
+      document.getElementById('modal-title').textContent = 'Agregar producto';
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
